@@ -1,44 +1,67 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+}
 
 android {
-    compileSdkVersion 22
+    namespace 'com.github.projectm_android'
+    compileSdk 35
+
     defaultConfig {
         applicationId "com.github.projectm_android"
-        minSdkVersion 22
-        targetSdkVersion 22
+        minSdk 21
+        targetSdk 35
+
         versionCode 1
         versionName "1.0"
+
+        ndk {
+            abiFilters 'x86_64', 'arm64-v8a', 'armeabi-v7a'
+        }
+
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++11"
-                arguments "-DANDROID_STL=c++_shared"
+                cppFlags "-std=c++17 -fexceptions -frtti"
+                // optional: use local projectM sources
+                // arguments "-DPROJECTM_SOURCE_DIR=/my/local/projectm"
             }
         }
-        ndk {
-            abiFilters "armeabi-v7a"
-        }
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            debuggable true
+        }
     }
+
     externalNativeBuild {
         cmake {
-            path "src/main/cpp/CMakeLists.txt"
+            path file('src/main/cpp/CMakeLists.txt')
         }
     }
-    sourceSets {
-        main {
-            jniLibs.srcDirs 'jniLibs', 'jniLibs/armeabi-v7a'
-        }
+
+    buildFeatures {
+        viewBinding true
     }
-    productFlavors {
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+        resources {
+            excludes += ['/META-INF/{AL2.0,LGPL2.1}']
+        }
     }
 }
+
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:22.2.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    // Ensure consistent Kotlin stdlib versions across all transitive deps.
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.24')
+
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 }
